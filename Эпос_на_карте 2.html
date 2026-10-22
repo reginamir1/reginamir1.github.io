@@ -1,0 +1,838 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Эпос на карте</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=Ruslan+Display&display=swap">
+<style>
+/* Layout concept: тёмная ночь над Уралом, охра пещерных рисунков как главный цвет,
+   башкирский орнамент-кускар как разделитель, цветок курая как знак героя.
+   Четыре главы эпоса: у каждой свой цвет (охра, небо флага, зелень флага, глина вышивки). */
+:root {
+  --bg: #0E1923;
+  --bg-2: #14232F;
+  --ink: #E8E3D6;
+  --muted: #9DAFB6;
+  --line: rgba(232, 227, 214, 0.18);
+  --c1: #E39A4B;
+  --c2: #7DB0E3;
+  --c3: #5CBF8A;
+  --c4: #E27A63;
+  --map-fill: #172B3A;
+  --f-display: 'Ruslan Display', Georgia, 'Times New Roman', serif;
+  --f-body: 'Golos Text', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #EEF0EA; --bg-2: #E0E6DF; --ink: #16232C; --muted: #4A5C65;
+    --line: rgba(22, 35, 44, 0.22);
+    --c1: #9A5410; --c2: #2D6199; --c3: #1D7449; --c4: #AB3A28;
+    --map-fill: #DAE4DE;
+    color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --bg: #EEF0EA; --bg-2: #E0E6DF; --ink: #16232C; --muted: #4A5C65;
+  --line: rgba(22, 35, 44, 0.22);
+  --c1: #9A5410; --c2: #2D6199; --c3: #1D7449; --c4: #AB3A28;
+  --map-fill: #DAE4DE;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 16px; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: 17px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3, h4, p, ul, ol, figure { margin: 0; }
+h1, h2, h3 { font-family: var(--f-display); font-weight: 400; text-wrap: balance; line-height: 1.08; }
+a { color: inherit; }
+a:focus-visible, .pt:focus-visible { outline: 2px solid var(--c1); outline-offset: 3px; }
+
+.in {
+  max-width: 1160px;
+  margin-inline: auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.eyebrow {
+  font-size: 12.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--c1);
+}
+.lead { font-size: clamp(18px, 2.2vw, 21px); max-width: 60ch; }
+.prose { max-width: 62ch; }
+.prose p + p { margin-top: 1em; }
+.muted { color: var(--muted); }
+
+/* орнамент */
+#orn { color: var(--c1); }
+.band { display: block; width: 100%; height: 28px; color: var(--c1); }
+.band.sm { height: 20px; opacity: 0.8; }
+
+/* ---------- Hero ---------- */
+.hero { padding-block: 56px 40px; position: relative; overflow: hidden; }
+.hero-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr); gap: 32px; align-items: center; }
+.hero h1 { font-size: clamp(54px, 12vw, 148px); letter-spacing: 0.01em; margin-block: 16px 24px; text-transform: uppercase; }
+.hero h1 span { display: block; color: var(--c1); }
+.hero .lead { color: var(--ink); }
+.hero-facts { display: flex; flex-wrap: wrap; gap: 12px 32px; margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--line); }
+.hero-facts div { display: flex; flex-direction: column; }
+.hero-facts b { font-family: var(--f-display); font-weight: 400; font-size: 38px; line-height: 1; color: var(--c1); }
+.hero-facts small { font-size: 13px; color: var(--muted); letter-spacing: 0.04em; }
+.kurai { width: 100%; max-width: 380px; justify-self: center; color: var(--c1); }
+.nav { display: flex; flex-wrap: wrap; gap: 6px 22px; padding-block: 16px; border-block: 1px solid var(--line); font-size: 14.5px; }
+.nav a { text-decoration: none; color: var(--muted); padding-block: 4px; }
+.nav a:hover { color: var(--ink); text-decoration: underline; text-decoration-color: var(--c1); text-underline-offset: 5px; }
+
+/* ---------- Sections ---------- */
+section.block { padding-block: 72px; }
+.block h2 { font-size: clamp(34px, 5.4vw, 60px); margin-block: 10px 22px; }
+.alt { background: var(--bg-2); }
+
+.principles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; margin-top: 36px; border-top: 1px solid var(--line); }
+.principles > div { padding: 24px 24px 8px 0; }
+.principles > div + div { padding-left: 24px; border-left: 1px solid var(--line); }
+.principles h3 { font-size: 26px; margin-bottom: 10px; }
+.principles p { color: var(--muted); font-size: 16px; }
+
+.epic-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 48px; align-items: start; }
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
+.stat { padding: 22px 18px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.stat b { display: block; font-family: var(--f-display); font-weight: 400; font-size: clamp(38px, 5vw, 56px); line-height: 1; color: var(--c1); font-variant-numeric: tabular-nums; }
+.stat span { display: block; margin-top: 8px; font-size: 14.5px; color: var(--muted); line-height: 1.4; }
+.note { margin-top: 28px; padding: 18px 20px; border-left: 3px solid var(--c1); background: color-mix(in srgb, var(--c1) 9%, var(--bg)); font-size: 16px; max-width: 62ch; }
+
+/* ---------- Map ---------- */
+.map-grid { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 48px; align-items: start; margin-top: 12px; }
+.map-wrap { position: sticky; top: 16px; }
+.map { width: 100%; height: auto; display: block; max-width: 520px; }
+.map .outline { fill: var(--map-fill); stroke: var(--muted); stroke-width: 1.4; stroke-linejoin: round; }
+.map .route { fill: none; stroke: var(--muted); stroke-width: 1.2; stroke-dasharray: 3 5; opacity: 0.55; }
+.map .ufa { fill: none; stroke: var(--muted); stroke-width: 1; stroke-dasharray: 2 4; }
+.map .cap { font: 600 11px var(--f-body); letter-spacing: 0.14em; fill: var(--muted); }
+.map .lbl { font: 500 12.5px var(--f-body); fill: var(--ink); paint-order: stroke; stroke: var(--map-fill); stroke-width: 3px; stroke-linejoin: round; }
+.pt { cursor: pointer; }
+.pt circle { fill: var(--c); stroke: var(--bg); stroke-width: 2; transition: stroke 0.15s; }
+.pt text.n { font: 600 12px var(--f-body); fill: var(--bg); text-anchor: middle; pointer-events: none; }
+.pt.on circle, .pt:hover circle { stroke: var(--ink); stroke-width: 2.5; }
+.pt.c1 { --c: var(--c1); } .pt.c2 { --c: var(--c2); } .pt.c3 { --c: var(--c3); } .pt.c4 { --c: var(--c4); }
+.map-cap { font-size: 13px; color: var(--muted); margin-top: 10px; max-width: 46ch; }
+
+.toc { display: grid; gap: 28px; }
+.toc-ch { --c: var(--c1); }
+.toc-ch[data-ch="2"] { --c: var(--c2); } .toc-ch[data-ch="3"] { --c: var(--c3); } .toc-ch[data-ch="4"] { --c: var(--c4); }
+.toc-ch h3 { font-size: 28px; color: var(--c); display: flex; align-items: baseline; gap: 12px; padding-bottom: 8px; border-bottom: 2px solid var(--c); }
+.toc-ch h3 small { font-family: var(--f-body); font-size: 12.5px; letter-spacing: 0.14em; color: var(--muted); text-transform: uppercase; }
+.toc-ch ol { list-style: none; padding: 0; }
+.toc-ch li a { display: flex; gap: 14px; align-items: baseline; padding: 10px 4px; text-decoration: none; border-bottom: 1px solid var(--line); }
+.toc-ch li a:hover, .toc-ch li a.on { background: color-mix(in srgb, var(--c) 12%, var(--bg)); }
+.toc-ch .num { font-family: var(--f-display); font-size: 22px; color: var(--c); min-width: 28px; font-variant-numeric: tabular-nums; }
+.toc-ch .nm { font-weight: 500; }
+.toc-ch .pl { margin-left: auto; font-size: 13.5px; color: var(--muted); text-align: right; }
+
+/* ---------- Chapters ---------- */
+.chapter { --c: var(--c1); }
+.chapter[data-ch="2"] { --c: var(--c2); } .chapter[data-ch="3"] { --c: var(--c3); } .chapter[data-ch="4"] { --c: var(--c4); }
+.ch-head { background: color-mix(in srgb, var(--c) 13%, var(--bg)); border-block: 1px solid var(--c); padding-block: 44px; }
+.ch-head .in { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px 36px; align-items: center; }
+.ch-roman { font-family: var(--f-display); font-size: clamp(76px, 13vw, 150px); line-height: 0.9; color: var(--c); }
+.ch-head .eyebrow { color: var(--c); }
+.ch-head h2 { font-size: clamp(36px, 6vw, 70px); margin-block: 6px 12px; text-transform: uppercase; }
+.ch-head p { max-width: 58ch; color: var(--ink); }
+
+.stop { padding-block: 56px; border-bottom: 1px solid var(--line); }
+.stop:last-of-type { border-bottom: 0; }
+.stop-head { display: flex; gap: 20px; align-items: center; margin-bottom: 28px; }
+.stop-num { flex: none; display: grid; place-items: center; width: 64px; height: 64px; border: 2px solid var(--c); color: var(--c); font-family: var(--f-display); font-size: 34px; transform: rotate(45deg); }
+.stop-num b { transform: rotate(-45deg); font-weight: 400; font-variant-numeric: tabular-nums; }
+.stop-head h3 { font-size: clamp(28px, 4.2vw, 46px); }
+.where { font-size: 13.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-top: 6px; font-weight: 500; }
+.stop-body { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 40px; align-items: start; }
+.layers { display: grid; gap: 22px; }
+.layer h4 { font-size: 12.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--c); font-family: var(--f-body); font-weight: 600; margin-bottom: 6px; }
+.layer p { max-width: 60ch; }
+.layer.legend p { font-style: italic; padding-left: 18px; border-left: 3px solid var(--c); }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0; border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
+.facts div { padding: 16px 14px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.facts b { display: block; font-family: var(--f-display); font-weight: 400; font-size: 34px; line-height: 1; color: var(--c); font-variant-numeric: tabular-nums; }
+.facts span { display: block; margin-top: 6px; font-size: 13.5px; color: var(--muted); line-height: 1.35; }
+.callout { padding: 16px 18px; background: color-mix(in srgb, var(--c) 11%, var(--bg)); border-left: 3px solid var(--c); font-size: 16px; }
+.callout b { font-family: var(--f-display); font-weight: 400; font-size: 26px; color: var(--c); margin-right: 8px; }
+.tip { background: var(--bg-2); padding: 22px 22px 18px; border-top: 3px solid var(--c); }
+.tip h4 { font-size: 12.5px; letter-spacing: 0.16em; text-transform: uppercase; font-family: var(--f-body); font-weight: 600; color: var(--c); margin-bottom: 10px; }
+.tip ul { padding-left: 18px; display: grid; gap: 8px; font-size: 15.5px; }
+.tip li::marker { color: var(--c); }
+.next { margin-top: 30px; font-size: 15px; color: var(--muted); display: flex; gap: 10px; align-items: baseline; }
+.next::before { content: "→"; color: var(--c); font-size: 20px; }
+
+/* ---------- Plan ---------- */
+.days { list-style: none; padding: 0; counter-reset: d; margin-top: 30px; display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 0; border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
+.days li { counter-increment: d; padding: 22px 20px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.days li::before { content: "День " counter(d); display: block; font-size: 12.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--c1); font-weight: 600; margin-bottom: 8px; }
+.days b { display: block; font-family: var(--f-display); font-weight: 400; font-size: 24px; line-height: 1.15; margin-bottom: 8px; }
+.days p { font-size: 15px; color: var(--muted); }
+.days li.extra::before { content: "Отдельно"; }
+
+.trio { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; margin-top: 34px; }
+.trio h3 { font-size: 26px; margin-bottom: 10px; color: var(--c1); }
+.trio ul { padding-left: 18px; display: grid; gap: 7px; font-size: 16px; }
+.trio li::marker { color: var(--c1); }
+
+.gloss { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 0 40px; margin-top: 28px; }
+.gloss div { padding: 14px 0; border-bottom: 1px solid var(--line); }
+.gloss dt { font-family: var(--f-display); font-size: 24px; color: var(--c1); }
+.gloss dd { margin: 2px 0 0; font-size: 15.5px; color: var(--muted); }
+dl { margin: 0; }
+
+.fragile { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px; margin-top: 32px; }
+.fragile > div { padding: 24px; border: 1px solid var(--c4); background: color-mix(in srgb, var(--c4) 8%, var(--bg)); }
+.fragile h3 { font-size: 28px; margin-bottom: 8px; color: var(--c4); }
+
+.finale { padding-block: 80px 56px; }
+.finale h2 { font-size: clamp(36px, 7vw, 88px); max-width: 16ch; text-transform: uppercase; }
+.finale h2 span { color: var(--c1); }
+.sources { margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--line); font-size: 13.5px; color: var(--muted); max-width: 90ch; }
+.sources h3 { font-family: var(--f-body); font-size: 12.5px; letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 10px; color: var(--ink); font-weight: 600; }
+.sources p + p { margin-top: 6px; }
+.qr{align-items:flex-start}.qr img{display:block;width:132px;height:132px;background:#fff;padding:4px;border-radius:10px}.qr small{margin-top:8px;max-width:150px;line-height:1.35}
+.maplink { color: var(--c1); text-underline-offset: 4px; }
+.warn { margin-top: 20px; color: var(--ink); font-size: 15px; }
+
+@media (max-width: 860px) {
+  body { font-size: 16.5px; }
+  .hero-grid, .epic-grid, .map-grid, .stop-body, .fragile, .trio, .principles { grid-template-columns: minmax(0, 1fr); }
+  .kurai { max-width: 220px; justify-self: start; order: -1; }
+  .map-wrap { position: static; }
+  .principles > div, .principles > div + div { padding: 20px 0; border-left: 0; border-bottom: 1px solid var(--line); }
+  section.block { padding-block: 52px; }
+  .ch-head .in { grid-template-columns: minmax(0, 1fr); }
+  .stop { padding-block: 44px; }
+  .toc-ch li a { flex-wrap: wrap; }
+  .toc-ch .pl { margin-left: 42px; text-align: left; width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { transition: none !important; } }
+</style>
+
+<header class="hero">
+  <div class="in">
+    <svg class="band" aria-hidden="true"><rect width="100%" height="28" fill="url(#orn)"/></svg>
+    <div class="hero-grid" style="margin-top:44px">
+      <div>
+        <p class="eyebrow">Авторский маршрут · Республика Башкортостан</p>
+        <h1>Эпос<span>на карте</span></h1>
+        <p class="lead">Десять мест, где «Урал-батыр» перестаёт быть легендой и становится окружающей культурой. Идём по сюжету эпоса и смотрим, как есть на самом деле.</p>
+        <div class="hero-facts">
+          <div><b>10</b><small>остановок</small></div>
+          <div><b>4</b><small>главы эпоса</small></div>
+          <div><b>2</b><small>перспективы на каждой точке: предание и факт</small></div>
+        </div>
+      </div>
+      <svg class="kurai" viewBox="-100 -100 200 200" aria-hidden="true">
+        <circle r="97" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="2 5" opacity="0.6"/>
+        <g fill="currentColor" fill-opacity="0.14" stroke="currentColor" stroke-width="2">
+          <ellipse cx="0" cy="-52" rx="17" ry="38"/>
+          <ellipse cx="0" cy="-52" rx="17" ry="38" transform="rotate(51.43)"/>
+          <ellipse cx="0" cy="-52" rx="17" ry="38" transform="rotate(102.86)"/>
+          <ellipse cx="0" cy="-52" rx="17" ry="38" transform="rotate(154.29)"/>
+          <ellipse cx="0" cy="-52" rx="17" ry="38" transform="rotate(205.71)"/>
+          <ellipse cx="0" cy="-52" rx="17" ry="38" transform="rotate(257.14)"/>
+          <ellipse cx="0" cy="-52" rx="17" ry="38" transform="rotate(308.57)"/>
+        </g>
+        <circle r="15" fill="currentColor"/>
+      </svg>
+    </div>
+    <nav class="nav" style="margin-top:44px" aria-label="Разделы страницы">
+      <a href="#epos">Герой маршрута</a>
+      <a href="#karta">Карта</a>
+      <a href="#glava-1">I · «Слово»</a>
+      <a href="#glava-2">II · «Камень»</a>
+      <a href="#glava-3">III · «Под землёй»</a>
+      <a href="#glava-4">IV · «Люди»</a>
+      <a href="#plan">План поездки</a>
+      <a href="#slovar">Слова маршрута</a>
+      <a href="#istochniki">Источники</a>
+    </nav>
+  </div>
+</header>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <pattern id="orn" width="64" height="28" patternUnits="userSpaceOnUse">
+      <g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+        <path d="M32 3 L45 14 L32 25 L19 14 Z"/>
+        <path d="M32 9 L39 14 L32 19 L25 14 Z"/>
+        <path d="M19 14 C10 14 7 6 13 5 C17.5 4.5 17.5 10 13.5 10.5"/>
+        <path d="M45 14 C54 14 57 6 51 5 C46.5 4.5 46.5 10 50.5 10.5"/>
+        <path d="M0 14 H4 M60 14 H64"/>
+      </g>
+      <circle cx="32" cy="14" r="1.8" fill="currentColor"/>
+    </pattern>
+  </defs>
+</svg>
+
+<main>
+
+<!-- Как читать -->
+<section class="block">
+  <div class="in">
+    <p class="eyebrow">Актуальность и новизна</p>
+    <h2>Республику читают как эпос</h2>
+    <p class="lead">Башкирию обычно показывают как природу или как историю. Мы построили маршрут по сюжету «Урал-батыра»: на каждой остановке два вопроса. Что об этом месте говорит предание и что там на самом деле?</p>
+    <div class="principles">
+      <div>
+        <h3>Маршрут по сюжету</h3>
+        <p>Четыре главы эпоса вместо привычного списка достопримечательностей. Порядок остановок идёт за рассказом, поэтому он не совпадает с кратчайшей дорогой.</p>
+      </div>
+      <div>
+        <h3>Предание и факт</h3>
+        <p>На каждой точке две перспективы: что говорит легенда и что подтверждают источники. Выдумка и проверенные сведения не смешиваются.</p>
+      </div>
+      <div>
+        <h3>Хрупкое наследие</h3>
+        <p>Шихан Шахтау уничтожен добычей известняка, памятник Салавату на реставрации. Маршрут показывает, что стоит беречь.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Эпос -->
+<section class="block alt" id="epos">
+  <div class="in">
+    <div class="epic-grid">
+      <div>
+        <p class="eyebrow">Герой маршрута</p>
+        <h2>«Урал-батыр»</h2>
+        <div class="prose">
+          <p>Самый крупный памятник башкирского эпоса. Это кубаир: сказание о сотворении мира и вечной борьбе добра со злом. Его не читали глазами, а исполняли сэсэны-кураисты, поэтому у эпоса есть напев.</p>
+          <p>Текст записал в 1910 году Мухаметша Бурангулов со слов двух сказителей. Больше пятидесяти лет запись пролежала в архивах, прежде чем эпос стал известен широко.</p>
+        </div>
+        <div class="note">По мнению учёных, слово «Урал» русские заимствовали из башкирского языка в середине XVI века. А реки Южного Урала носят имена героев эпоса: по данным РГО, трёх сыновей и племянника Урал-батыра.</div>
+      </div>
+      <div class="stats">
+        <div class="stat"><b>4576</b><span>стихотворных строк и 19 прозаических</span></div>
+        <div class="stat"><b>1910</b><span>год записи: Мухаметша Бурангулов</span></div>
+        <div class="stat"><b>2</b><span>сэсэна-кураиста, от которых записан текст</span></div>
+        <div class="stat"><b>50+</b><span>лет запись оставалась в архивах</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Карта -->
+<section class="block" id="karta">
+  <div class="in">
+    <p class="eyebrow">Карта маршрута</p>
+    <h2>Десять остановок</h2>
+    <p class="lead">Идём по сюжету эпоса, а не по трассе. Нажмите на точку или на строку списка, чтобы перейти к описанию.</p>
+    <div class="map-grid" style="margin-top:36px">
+      <div class="map-wrap">
+        <svg class="map" viewBox="0 0 500 560" role="img" aria-labelledby="mapt">
+          <title id="mapt">Условная схема маршрута по Башкортостану: десять остановок</title>
+          <polygon class="outline" points="142,80 184,65 238,50 292,60 340,90 376,130 394,180 394,230 424,260 460,310 454,380 418,450 388,500 340,520 280,520 232,530 184,500 136,460 88,400 52,340 64,280 88,220 112,160 118,110"/>
+          <polyline class="route" points="355,445 208,220 220,355 349,257 256,470 254,100 283,403 310,425 184,242 232,236"/>
+          <circle class="ufa" cx="220" cy="228" r="36"/>
+          <text class="cap" x="246" y="180">УФА</text>
+          <text class="cap" x="468" y="26" text-anchor="end">С ↑</text>
+
+          <a href="#stop-1" aria-label="1. Идрисово и Малый Иткул"><g class="pt c1" data-pt="1"><circle cx="355" cy="445" r="12"/><text class="n" x="355" y="449.5">1</text></g></a>
+          <a href="#stop-2" aria-label="2. Национальный музей"><g class="pt c1" data-pt="2"><circle cx="208" cy="220" r="12"/><text class="n" x="208" y="224.5">2</text></g></a>
+          <a href="#stop-3" aria-label="3. Шиханы"><g class="pt c2" data-pt="3"><circle cx="220" cy="355" r="12"/><text class="n" x="220" y="359.5">3</text></g></a>
+          <a href="#stop-4" aria-label="4. Янгантау"><g class="pt c2" data-pt="4"><circle cx="349" cy="257" r="12"/><text class="n" x="349" y="261.5">4</text></g></a>
+          <a href="#stop-5" aria-label="5. Мурадымовское ущелье"><g class="pt c3" data-pt="5"><circle cx="256" cy="470" r="12"/><text class="n" x="256" y="474.5">5</text></g></a>
+          <a href="#stop-6" aria-label="6. Аскинская ледяная пещера"><g class="pt c3" data-pt="6"><circle cx="254" cy="100" r="12"/><text class="n" x="254" y="104.5">6</text></g></a>
+          <a href="#stop-7" aria-label="7. Шульган-Таш"><g class="pt c3" data-pt="7"><circle cx="283" cy="403" r="12"/><text class="n" x="283" y="407.5">7</text></g></a>
+          <a href="#stop-8" aria-label="8. Бортничество"><g class="pt c4" data-pt="8"><circle cx="310" cy="425" r="12"/><text class="n" x="310" y="429.5">8</text></g></a>
+          <a href="#stop-9" aria-label="9. Мавзолей Тура-хана"><g class="pt c4" data-pt="9"><circle cx="184" cy="244" r="12"/><text class="n" x="184" y="248.5">9</text></g></a>
+          <a href="#stop-10" aria-label="10. Памятник Салавату Юлаеву"><g class="pt c4" data-pt="10"><circle cx="233" cy="238" r="12"/><text class="n" x="233" y="242.5">10</text></g></a>
+
+          <text class="lbl" x="372" y="450">Идрисово</text>
+          <text class="lbl" x="192" y="213" text-anchor="end">Нацмузей</text>
+          <text class="lbl" x="237" y="360">Шиханы</text>
+          <text class="lbl" x="366" y="262">Янгантау</text>
+          <text class="lbl" x="273" y="475">Мурадымово</text>
+          <text class="lbl" x="271" y="105">Аскинская пещера</text>
+          <text class="lbl" x="267" y="391" text-anchor="end">Шульган-Таш</text>
+          <text class="lbl" x="327" y="417">Бортничество</text>
+          <text class="lbl" x="168" y="264" text-anchor="end">Тура-хан</text>
+          <text class="lbl" x="251" y="256">Салават</text>
+        </svg>
+        <p class="map-cap">Схема условная: точки показаны приблизительно, север вверху. Пунктир показывает порядок глав эпоса, а не дорогу.</p>
+      </div>
+
+      <div class="toc">
+        <div class="toc-ch" data-ch="1">
+          <h3>I · «Слово» <small>Как эпос дошёл до нас</small></h3>
+          <ol>
+            <li><a href="#stop-1" data-link="1"><span class="num">1</span><span class="nm">Идрисово и Малый Иткул</span><span class="pl">Баймакский район</span></a></li>
+            <li><a href="#stop-2" data-link="2"><span class="num">2</span><span class="nm">Национальный музей РБ</span><span class="pl">Уфа</span></a></li>
+          </ol>
+        </div>
+        <div class="toc-ch" data-ch="2">
+          <h3>II · «Камень» <small>Откуда взялись горы</small></h3>
+          <ol>
+            <li><a href="#stop-3" data-link="3"><span class="num">3</span><span class="nm">Шиханы Стерлитамака</span><span class="pl">Окрестности Стерлитамака</span></a></li>
+            <li><a href="#stop-4" data-link="4"><span class="num">4</span><span class="nm">Гора Янгантау</span><span class="pl">Салаватский район</span></a></li>
+          </ol>
+        </div>
+        <div class="toc-ch" data-ch="3">
+          <h3>III · «Под землёй» <small>Царство Шульгена</small></h3>
+          <ol>
+            <li><a href="#stop-5" data-link="5"><span class="num">5</span><span class="nm">Мурадымовское ущелье</span><span class="pl">Кугарчинский район</span></a></li>
+            <li><a href="#stop-6" data-link="6"><span class="num">6</span><span class="nm">Аскинская ледяная пещера</span><span class="pl">Аскинский район</span></a></li>
+            <li><a href="#stop-7" data-link="7"><span class="num">7</span><span class="nm">Пещера Шульган-Таш</span><span class="pl">Бурзянский район</span></a></li>
+          </ol>
+        </div>
+        <div class="toc-ch" data-ch="4">
+          <h3>IV · «Люди» <small>От письма до памятника</small></h3>
+          <ol>
+            <li><a href="#stop-8" data-link="8"><span class="num">8</span><span class="nm">Бортничество и бурзянская пчела</span><span class="pl">Бурзянский район</span></a></li>
+            <li><a href="#stop-9" data-link="9"><span class="num">9</span><span class="nm">Мавзолей Тура-хана</span><span class="pl">Чишминский район</span></a></li>
+            <li><a href="#stop-10" data-link="10"><span class="num">10</span><span class="nm">Памятник Салавату Юлаеву</span><span class="pl">Уфа</span></a></li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ГЛАВА I -->
+<div class="chapter" data-ch="1" id="glava-1">
+  <div class="ch-head">
+    <div class="in">
+      <div class="ch-roman" aria-hidden="true">I</div>
+      <div>
+        <p class="eyebrow">Глава I · остановки 1 и 2</p>
+        <h2>«Слово»</h2>
+        <p>Как эпос дошёл до нас. Начинаем с места, где его записали, и с музея, где собрана история края.</p>
+      </div>
+    </div>
+  </div>
+  <div class="in">
+    <article class="stop" id="stop-1">
+      <div class="stop-head">
+        <div class="stop-num"><b>1</b></div>
+        <div><h3>Идрисово и Малый Иткул</h3><p class="where">Баймакский район</p></div>
+      </div>
+      <div class="stop-body">
+        <div class="layers">
+          <div class="layer"><h4>Что здесь произошло</h4><p>В 1910 году Мухаметша Бурангулов записал здесь «Урал-батыр» со слов двух сэсэнов-кураистов: Габита Аргынбаева и Хамита Альмухаметова. Эпос бытует вместе с напевом, то есть живёт как звучащее слово.</p></div>
+          <div class="layer"><h4>Почему с этого места начинается маршрут</h4><p>Без этой записи эпос мог бы не дойти до нас. Остальные девять остановок читаются как продолжение сюжета, который сохранили два сказителя.</p></div>
+        </div>
+        <aside class="tip">
+          <h4>Туристу</h4>
+          <ul>
+            <li>Это юго-восток республики, далеко от Уфы. Отведите на поездку отдельный день.</li>
+            <li>Заранее послушайте кубаир в записи, чтобы погрузиться в атмосферу.</li>
+          </ul>
+        </aside>
+      </div>
+    </article>
+
+    <article class="stop" id="stop-2">
+      <div class="stop-head">
+        <div class="stop-num"><b>2</b></div>
+        <div><h3>Национальный музей Республики Башкортостан</h3><p class="where">Уфа, ул. Советская, 14</p></div>
+      </div>
+      <div class="stop-body">
+        <div class="layers">
+          <div class="layer"><h4>На месте</h4><p>Крупнейший музей республики основан в 1864 году как музей при Статистическом комитете Оренбургской губернии. Нынешнее название носит с 1993 года. Отсюда удобно начинать: история края собрана в одном месте.</p></div>
+          <div class="facts">
+            <div><b>1864</b><span>год основания</span></div>
+            <div><b>1993</b><span>нынешнее название</span></div>
+          </div>
+        </div>
+        <aside class="tip">
+          <h4>Туристу</h4>
+          <ul>
+            <li>Начинайте поездку отсюда: экспозиция помогает понять, что вы увидите дальше.</li>
+            <li>Режим работы и цены на билеты уточняйте перед визитом.</li>
+          </ul>
+        </aside>
+      </div>
+      <p class="next">Дальше: от «слова» к «камню». Эпос объясняет, откуда взялись горы.</p>
+    </article>
+  </div>
+</div>
+
+<!-- ГЛАВА II -->
+<div class="chapter" data-ch="2" id="glava-2">
+  <div class="ch-head">
+    <div class="in">
+      <div class="ch-roman" aria-hidden="true">II</div>
+      <div>
+        <p class="eyebrow">Глава II · остановки 3 и 4</p>
+        <h2>«Камень»</h2>
+        <p>Горы здесь воспринимаются как существа: застывший конь, сердце, дракон. Геологи видят в них древнее море и подземный жар.</p>
+      </div>
+    </div>
+  </div>
+  <div class="in">
+    <article class="stop" id="stop-3">
+      <div class="stop-head">
+        <div class="stop-num"><b>3</b></div>
+        <div><h3>Шиханы: горы-рифы</h3><p class="where">Окрестности Стерлитамака</p></div>
+      </div>
+      <div class="stop-body">
+        <div class="layers">
+          <div class="layer legend"><h4>Предание</h4><p>Горы видят застывшими существами. Торатау, «крепость-гора», похожа на запрокинутую голову павшего коня, а Юрактау называют «сердце-горой».</p></div>
+          <div class="layer"><h4>На месте</h4><p>Шиханы — остатки древнего рифа, сложенные известняком: когда-то здесь было море. Они внесены в список геологического наследия GEOSITES, а Торатау, Юрактау и Куштау — в предварительный список ЮНЕСКО.</p></div>
+          <div class="callout"><b>4 → 3</b>Шахтау: с 1951 года на её месте добывали известняк, и гора почти исчезла. Было четыре шихана, осталось три.</div>
+        </div>
+        <aside class="tip">
+          <h4>Туристу</h4>
+          <ul>
+            <li>Свет лучше всего на рассвете и на закате, когда известняк становится тёплым.</li>
+            <li>Возьмите воду и удобную обувь с протектором.</li>
+            <li>Правила подъёма на вершины уточняйте на месте: это охраняемая территория.</li>
+          </ul>
+        </aside>
+      </div>
+      <p class="next">Дальше: гора, из которой идёт пар.</p>
+    </article>
+
+    <article class="stop" id="stop-4">
+      <div class="stop-head">
+        <div class="stop-num"><b>4</b></div>
+        <div><h3>Янгантау: горящая гора</h3><p class="where">Салаватский район</p></div>
+      </div>
+      <div class="stop-body">
+        <div class="layers">
+          <div class="facts">
+            <div><b>504&nbsp;м</b><span>высота горы</span></div>
+            <div><b>1937</b><span>построен санаторий</span></div>
+            <div><b>2017</b><span>создан геопарк, первый в России</span></div>
+            <div><b>21</b><span>геологический объект в геопарке</span></div>
+          </div>
+          <div class="layer legend"><h4>Образ</h4><p>В эпосе герой бьётся со змеями и дивами. Янгантау сравнивают с огнедышащим драконом аждахой: из недр в любую погоду поднимаются горячие струи пара и газов.</p></div>
+          <div class="layer"><h4>На месте</h4><p>Прежде гору называли Беркутовой. Первое упоминание есть у академика Палласа, путешествовавшего по России в 1773–1788 годах. С 1965 года гора — памятник природы.</p></div>
+        </div>
+        <aside class="tip">
+          <h4>Туристу</h4>
+          <ul>
+            <li>Пар поднимается в любую погоду, а в холодный день его особенно хорошо видно.</li>
+            <li>У подножия работает санаторий с 1937 года: условия посещения уточняйте заранее.</li>
+          </ul>
+        </aside>
+      </div>
+      <p class="next">Дальше: «под землю», в царство Шульгена.</p>
+    </article>
+  </div>
+</div>
+
+<!-- ГЛАВА III -->
+<div class="chapter" data-ch="3" id="glava-3">
+  <div class="ch-head">
+    <div class="in">
+      <div class="ch-roman" aria-hidden="true">III</div>
+      <div>
+        <p class="eyebrow">Глава III · остановки 5, 6 и 7</p>
+        <h2>«Под землёй»</h2>
+        <p>В эпосе Урал-батыр с Заркумом приходит в змеиное царство и входит во «дворец тайн». Подземелье здесь часть мифа. В Башкирии известно около 1000 пещер, а по оценкам специалистов их может быть около 2500.</p>
+      </div>
+    </div>
+  </div>
+  <div class="in">
+    <article class="stop" id="stop-5">
+      <div class="stop-head">
+        <div class="stop-num"><b>5</b></div>
+        <div><h3>Мурадымовское ущелье</h3><p class="where">Кугарчинский район · природный парк</p></div>
+      </div>
+      <div class="stop-body">
+        <div class="layers">
+          <div class="layer legend"><h4>В эпосе</h4><p>Урал-батыр и Заркум входят в змеиное царство и попадают во «дворец тайн».</p></div>
+          <div class="layer"><h4>На месте</h4><p>Горное ущелье с карстовыми пещерами. Новомурадымовская пещера тянется примерно на 1850 метров.</p></div>
+          <div class="facts"><div><b>≈1850&nbsp;м</b><span>длина Новомурадымовской пещеры</span></div></div>
+        </div>
+        <aside class="tip">
+          <h4>Туристу</h4>
+          <ul>
+            <li>В карстовые пещеры без проводника не заходите: нужны каска, налобный фонарь и опыт.</li>
+            <li>Лучше планировать поездку на тёплое время года.</li>
+          </ul>
+        </aside>
+      </div>
+    </article>
+
+    <article class="stop" id="stop-6">
+      <div class="stop-head">
+        <div class="stop-num"><b>6</b></div>
+        <div><h3>Аскинская ледяная пещера</h3><p class="where">Аскинский район</p></div>
+      </div>
+      <div class="stop-body">
+        <div class="layers">
+          <div class="layer"><h4>На месте</h4><p>Единственная пещера республики с реликтовым льдом. Вход — арка размером 9 на 22 метра. Подземное царство из эпоса здесь можно увидеть буквально: лёд хранится в темноте с глубокой древности.</p></div>
+          <div class="facts"><div><b>9×22&nbsp;м</b><span>размер арки-входа</span></div></div>
+        </div>
+        <aside class="tip">
+          <h4>Туристу</h4>
+          <ul>
+            <li>Внутри холодно даже летом: тёплая одежда и обувь, которая не скользит.</li>
+            <li>К пещере ведёт тропа примерно в 2 км от села Аскино: заложите время и возьмите подходящую обувь.</li>
+          </ul>
+        </aside>
+      </div>
+    </article>
+
+    <article class="stop" id="stop-7">
+      <div class="stop-head">
+        <div class="stop-num"><b>7</b></div>
+        <div><h3>Шульган-Таш (Капова пещера)</h3><p class="where">Бурзянский район</p></div>
+      </div>
+      <div class="stop-body">
+        <div class="layers">
+          <div class="layer legend"><h4>В эпосе</h4><p>Шульген — повелитель подземного мира. По преданию, рядом с пещерой из озера вылетел крылатый конь Акбузат. «Таш» значит «камень».</p></div>
+          <div class="layer"><h4>На месте</h4><p>В четырёх залах нашли около 200 палеолитических рисунков: мамонты, лошади, знаки. Их выполнили охрой и углём, по оценкам, в XII–X тысячелетиях до н. э. Цвет охры вы видите в оформлении проекта.</p></div>
+          <div class="facts">
+            <div><b>≈200</b><span>рисунков в пещере</span></div>
+            <div><b>1954</b><span>год обнаружения</span></div>
+            <div><b>3&nbsp;км</b><span>длина пещеры</span></div>
+            <div><b>≈5&nbsp;ч</b><span>дороги от Уфы</span></div>
+          </div>
+        </div>
+        <aside class="tip">
+          <h4>Туристу</h4>
+          <ul>
+            <li>Дорога от Уфы занимает около пяти часов: лучше ехать с ночёвкой.</li>
+            <li>Пещера охраняемая, посещение организовано. Условия и запись уточняйте заранее.</li>
+            <li>Рисунки хрупкие: стен не касаемся.</li>
+          </ul>
+        </aside>
+      </div>
+      <p class="next">Дальше: те же леса хранят другую тайну — мёд.</p>
+    </article>
+  </div>
+</div>
+
+<!-- ГЛАВА IV -->
+<div class="chapter" data-ch="4" id="glava-4">
+  <div class="ch-head">
+    <div class="in">
+      <div class="ch-roman" aria-hidden="true">IV</div>
+      <div>
+        <p class="eyebrow">Глава IV · остановки 8, 9 и 10</p>
+        <h2>«Люди»</h2>
+        <p>От письма до памятника. Эпос сохранили люди: бортники, воины, хранители музеев и скульпторы.</p>
+      </div>
+    </div>
+  </div>
+  <div class="in">
+    <article class="stop" id="stop-8">
+      <div class="stop-head">
+        <div class="stop-num"><b>8</b></div>
+        <div><h3>Бортничество: мёд из леса</h3><p class="where">Бурзянский район</p></div>
+      </div>
+      <div class="stop-body">
+        <div class="layers">
+          <div class="facts" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr))">
+            <div><b>Борть</b><span>дупло дерева на высоте 4–15 метров, где живут дикие пчёлы. От этого слова и название промысла.</span></div>
+            <div><b>Тамга</b><span>родовой знак на дереве. Бортники — целые династии: деревья и навыки передают от отца к сыну.</span></div>
+            <div><b>Сентябрь</b><span>в этом месяце бортники традиционно начинают сбор. Пчёл бурзянской породы охраняет заповедник «Шульган-Таш».</span></div>
+          </div>
+          <div class="layer"><h4>На месте</h4><p>В первозданном виде бортничество сохранилось лишь в Башкирии. В 2006 году бортевого мёда получали не больше тонны в год, отсюда его редкость.</p></div>
+          <div class="callout">«Живая вода» эпоса — авторская метафора нашего проекта для этого мёда.</div>
+        </div>
+        <aside class="tip">
+          <h4>Туристу</h4>
+          <ul>
+            <li>Приезжайте в сентябре, когда традиционно начинается сбор.</li>
+            <li>Бортевой мёд редок. Покупайте его у местных бортников, а не на случайных лотках.</li>
+          </ul>
+        </aside>
+      </div>
+    </article>
+
+    <article class="stop" id="stop-9">
+      <div class="stop-head">
+        <div class="stop-num"><b>9</b></div>
+        <div><h3>Мавзолей Тура-хана</h3><p class="where">Чишминский район · около 50 км от Уфы</p></div>
+      </div>
+      <div class="stop-body">
+        <div class="layers">
+          <div class="layer"><h4>На месте</h4><p>Мавзолей XIV века (по другим оценкам, XIV–XV). Рядом — Евразийский музей кочевых цивилизаций. В экспозиции есть копия фрагмента Ибн Фадлана (X век) с первым письменным упоминанием башкир.</p></div>
+          <div class="facts">
+            <div><b>XIV&nbsp;в.</b><span>возраст мавзолея</span></div>
+            <div><b>X&nbsp;в.</b><span>Ибн Фадлан: первое письменное упоминание башкир</span></div>
+            <div><b>≈50&nbsp;км</b><span>от Уфы</span></div>
+          </div>
+        </div>
+        <aside class="tip">
+          <h4>Туристу</h4>
+          <ul>
+            <li>Удобная поездка на полдня из Уфы.</li>
+            <li>Посмотрите в музее копию фрагмента Ибн Фадлана: так о башкирах впервые написали.</li>
+          </ul>
+        </aside>
+      </div>
+    </article>
+
+    <article class="stop" id="stop-10">
+      <div class="stop-head">
+        <div class="stop-num"><b>10</b></div>
+        <div><h3>Памятник Салавату Юлаеву</h3><p class="where">Уфа</p></div>
+      </div>
+      <div class="stop-body">
+        <div class="layers">
+          <div class="layer"><h4>На месте</h4><p>Скульптор Сосланбек Тавасиев открыл памятник в 1967 году: всадник высотой 9,8 м, с постаментом 14 м. По сообщениям СМИ, сейчас он демонтирован для реставрации, обновлённый вернут к октябрю 2027 года.</p></div>
+          <div class="layer"><h4>Кто такой Салават</h4><p>Салават Юлаев — башкирский национальный герой, поэт и сподвижник Емельяна Пугачёва в восстании 1773–1775 годов.</p></div>
+          <div class="facts">
+            <div><b>1967</b><span>год открытия</span></div>
+            <div><b>9,8&nbsp;м</b><span>высота всадника</span></div>
+            <div><b>14&nbsp;м</b><span>вместе с постаментом</span></div>
+          </div>
+        </div>
+        <aside class="tip">
+          <h4>Туристу</h4>
+          <ul>
+            <li>Сейчас памятник на реставрации. Перед выездом проверьте, что можно увидеть на месте.</li>
+            <li>Вернуть обновлённый памятник обещают к октябрю 2027 года.</li>
+          </ul>
+        </aside>
+      </div>
+    </article>
+  </div>
+</div>
+
+<!-- Что беречь -->
+<section class="block alt">
+  <div class="in">
+    <p class="eyebrow">Хрупкое наследие</p>
+    <h2>Что стоит беречь</h2>
+    <p class="lead">Маршрут показывает не только красоту, но и потери. Две из десяти остановок сейчас напоминают, что наследие не вечно.</p>
+    <div class="fragile">
+      <div>
+        <h3>Шахтау</h3>
+        <p>С 1951 года на месте шихана добывали известняк, и гора почти исчезла. Из четырёх шиханов осталось три, и все они сейчас под охраной как геологическое наследие.</p>
+      </div>
+      <div>
+        <h3>Памятник Салавату</h3>
+        <p>Символ Уфы демонтирован для реставрации. Обновлённый памятник должен вернуться на место к октябрю 2027 года.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- План -->
+<section class="block" id="plan">
+  <div class="in">
+    <p class="eyebrow">Для тех, кто поедет</p>
+    <h2>Как собрать поездку</h2>
+    <p class="lead">Эпос рассказывается в одном порядке, а ехать удобнее в другом. Вот ориентировочный план на пять дней. Расстояния и время в пути проверяйте по навигатору.</p>
+    <ol class="days">
+      <li><b>Уфа и Тура-хан</b><p>Национальный музей (2), памятник Салавату (10, пока на реставрации), затем полдня в Чишминском районе у мавзолея Тура-хана (9).</p></li>
+      <li><b>Шиханы</b><p>Окрестности Стерлитамака (3): Торатау, Юрактау, Куштау и место, где была Шахтау.</p></li>
+      <li><b>Янгантау</b><p>Горящая гора и геопарк в Салаватском районе (4).</p></li>
+      <li><b>Мурадымовское ущелье</b><p>Природный парк в Кугарчинском районе (5). Вечером дорога в Бурзянский район.</p></li>
+      <li><b>Шульган-Таш и бортники</b><p>Пещера с рисунками (7) и бортничество в Бурзянском районе (8). Лучше сентябрь.</p></li>
+      <li class="extra"><b>Отдельные выезды</b><p>Идрисово (1) на юго-востоке лежит далеко от остальных точек, а к Аскинской ледяной пещере (6) идти пешком по тропе. Для каждой лучше выделить отдельное время.</p></li>
+    </ol>
+
+    <div class="trio">
+      <div>
+        <h3>Когда ехать</h3>
+        <ul>
+          <li>Лето: шиханы, ущелье, пещеры.</li>
+          <li>Сентябрь: начало сбора бортевого мёда.</li>
+          <li>Холодные дни: пар Янгантау виден особенно хорошо.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Что взять</h3>
+        <ul>
+          <li>Тёплую одежду для ледяной пещеры, даже летом.</li>
+          <li>Налобный фонарь и обувь с протектором.</li>
+          <li>Воду и запас времени на дорогу: расстояния большие.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Что попробовать</h3>
+        <ul>
+          <li>Бортевой мёд бурзянских пчёл.</li>
+          <li>Кумыс, бишбармак и губадия в местных кафе.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Словарь -->
+<section class="block alt" id="slovar">
+  <div class="in">
+    <p class="eyebrow">Словарь маршрута</p>
+    <h2>Слова, которые вы услышите</h2>
+    <dl class="gloss">
+      <div><dt>Кубаир</dt><dd>Жанр башкирского эпического сказания. «Урал-батыр» — самый крупный его памятник.</dd></div>
+      <div><dt>Сэсэн</dt><dd>Сказитель. Сэсэн-кураист исполняет эпос под звук курая.</dd></div>
+      <div><dt>Курай</dt><dd>Башкирский духовой инструмент из стебля растения. Цветок курая изображён на флаге республики.</dd></div>
+      <div><dt>Тау</dt><dd>Гора. Торатау, Юрактау, Куштау, Янгантау: все названия с этим словом.</dd></div>
+      <div><dt>Таш</dt><dd>Камень. Шульган-Таш — «камень Шульгена».</dd></div>
+      <div><dt>Шульген</dt><dd>Повелитель подземного мира в эпосе.</dd></div>
+      <div><dt>Акбузат</dt><dd>Крылатый конь, вылетевший, по преданию, из озера рядом с пещерой.</dd></div>
+      <div><dt>Аждаха</dt><dd>Огнедышащий дракон. С ним сравнивают гору Янгантау.</dd></div>
+      <div><dt>Борть и тамга</dt><dd>Дупло с дикими пчёлами и родовой знак бортника на дереве.</dd></div>
+    </dl>
+  </div>
+</section>
+
+<!-- Финал -->
+<section class="finale" id="istochniki">
+  <div class="in">
+    <svg class="band sm" aria-hidden="true"><rect width="100%" height="28" fill="url(#orn)"/></svg>
+    <div style="margin-top:48px">
+      <h2>Эпос лежит на карте. <span>Остаётся пройти по ней.</span></h2>
+    </div>
+    <div class="hero-facts" style="margin-top:36px;max-width:640px">
+      <div><b>10</b><small>точек: от Баймакского района до Уфы и Чишмов</small></div>
+      <div><b>4</b><small>главы: «Слово», «Камень», «Под землёй», «Люди»</small></div>
+      <div class="qr"><a href="https://yandex.ru/maps/?bookmarks%5BpublicId%5D=Nn_hx0re&amp;ll=56.679986%2C53.960790&amp;mode=bookmarks&amp;utm_campaign=bookmarks&amp;utm_source=share&amp;z=7" target="_blank" rel="noopener" aria-label="Карта маршрута на Яндекс Картах"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAjoAAAI6CAIAAAChKnWXAAAQAElEQVR4nOzd3XLcOneE4XEq93/LzoGqHJUlY1Oz2Oxu4H3O5mMALPyQy9wUkP/9/fv3CwCAbP/zAgAgHukKAFCAdAUAKEC6AgAUIF0BAAqQrgAABUhXAIACpCsAQAHSFQCgAOkKAFCAdAUAKEC6AgAUIF0BAAqQrgAABUhXAIACpCsAQAHSFQCgAOkKAFCAdAUAKEC6AgAUIF0BAAqQrgAABUhXAIACpCsAQAHSFQCgAOkKAFCAdAUAKEC6AgAUIF0BAAqQrgAABUhXAIACpCsAQAHSFQCgAOkKAFCAdAUAKEC6AgAUIF0BAAqQrgAABUhXAIAC//tK8uvXr1eD379/vwDgXTzr3vArJJqWyfvsvaH73NOvNayvTmqe0NU80TiSE41rQzdHk6i8NZ/zrLtdxH8MbJy/11th/1XkRz8nNU/oap5oHMmJxrWhm6NJVN6az3nWKfjTVen8fZg8Nf76H9dXJzVP6GqeaBzJica1oZujSVTems951omY01X1/H3YoAsA1HjWzTnT1TYPejIWgAWedbfgD9kBAAVs6WqzN5Ir3fn2r2v+/I/rq5OaJ3Q1TzSO5ETj2tDN0SQqS80HPutEeLt61F+L+0c/JzVP6GqeaBzJica1oZujSVSZNeMK276r/b73sHYBfMWz7i5Zp1qsPTlG/PUEABeedd/qSFfPJ/OPFhUT6ToxQXf6wOTqWmPMa/vNgkvmuprb6Vl3u4JvV8Y75PamXScm3HjcwI0/1xpjXttvFlwy19XcTs86hfR0lflHWe9xnZiwbtd1da0x5rX9ZsElc13N7fSsE4lOV5l/lAUA9+JZd0VuuooaODIWABGedRex7woAUCA0XQVm+HlIrhMTfg/OF9BdXWuMeW2/WXDJXFdv2/JZJ8Lb1aNcu+LX7bp+rjXGvLbfLLhkriuohZ5qkbkOGmMG4MWz7i5Np1qs/fQvSskuABod+6zbIV29t/Xho9TzE5l5NkFju5OodFz91c3RpOx+o+FddV3PutvVf7sabtN7eM9j5tkEje1OotJx9Vc3R5Oy+42Gd9V1PesUutOV7rgBhcyzCRrbnUSl4+qvbo4mZfcbDe+q63rWiRSnqxuHfoN/dwDYFc+6D63p6vZBJ2MBCMSz7g/2XQEAClSmK9G/DtT/6Mg8m6Cx3UlUOq7+6uZoUna/0bCsutJnnQhvV4/KPJugsd1JVDqu/urmaFJ2v9HIXHXnqDzVQvdPg0m7rF0AX/GsuwtvVwCAAvscwrQH3Z75dc26dicmUenKNkblinnitP7iP/F2FUS3Z35ds67diUlUurKNUblinjitv7iCdJVCt2c+ea/+v+jOJpiUbYzKFfPEaf3FRaQrAEAB0hUAoADpCgBQgHSVQrdnfl2zrt2JSVS6so1RuWKeOK2/uIh0FUS3Z75xr37jSQ2TmnVRuWKeOK2/uIJTLW5rl5UN4CuedXfh7QoAUIBTLZ623+kSrh7pTi7IvLqWOUcu+/UIL96uHrbf6RKuHulOLsj8uZY5Ry779eh2pSm8Ml2Jxlo9hfudLuHqke7kgsyra5lz5LJZj3g1/Iy3KwBAgdZ0dfs/OvhXDIBAPOv+KH670m1LAoAcPOs+dP/HQN2hDwq63fg6rvMFJlFNymZeXcucI5f9evSh61knUv/tajgBD8+fbje+ziRmXY8mNet65BqrzDly2a9HH7qedQqVp1q8UeEDTWxzVwC4Ec+6u+yzTZhsAeAExz7rONWiiWuv/rrdSVS6HmVG5WrXVbNuFhrnF0Psu7oqbcfuY/G4zmKYyIzK1a6rZt0sNM4v5kLTFWvoL669+q6zGCYyo3K166rZdU7HpGaLwGdd7OOXtysAQIHcdBWV4XnbAyDCs+6i6LerkIEjVwGQ4ll3Rfp/DEz7AwcX115911kME5lRudp11aybhcb5vYJn3X8q+HZlHMSo+XPt1XedxTCRGZWrXVfNrnM6JjV78axbCz3V4luuHTAXRa17ACF41t2laZsw35AAnIBn3bc41eJprt34lKUsZb1lMcS+q3tcXLiu3fiUfV1G2ddllH3hQbZ0deA/TFy78SlLWcoay272rDN2h7crAEABZ7ri/20agBPwrLuF+e1qv//XpQDwFc+6Of9/DKyexcn+xB/VQFnKUra37Bv/x2kSgo/4dlU6i2+E7dqNT9nXZZR9XUbZ1w+d86xT+BU1fC1/GFr9ryQAdjzr3pCVrgAA+BanWmRZ75lfX3WZROXqb+Y466LKXDlrnB+Bv7DvKsh6z/z6p4vujABdfzPHWRdV5spZ4/wIfEW6SrHeMz/Zja+jOyNA19/McdZFlbly1hpjxgNIVwCAAqQrAEAB0hUAoADpKsV6z/z6qsskKld/M8dZF1XmyllrjBkPIF0FWe+Zn++oV9CdEaDrb+Y466LKXDlrjTFDjW3CAIACvF0BAAr4T7XIPLkg8+qEq91G+60c15p01ayTef9OyhY9GcxvV5knF2T+nHC122i/leNak66adTLv30nZrieDM11lnlyQeXXC1W6j/VaOa026atbJvH8nZeueDHy7AgAUIF0BAAqQrgAABZzpKvPkgsyrE652G+23clxr0lWzTub9Oylb92Qwv11lnlyQ+XPC1W6j/VaOa026atbJvH8nZbueDJxqAQAowLcrAECB9FMtdFcnUU3K6mJ2RZXZ34n9ZmES1aSsK+bMu8wlM6o3RJ9qofs5iWpSVhezK6rM/k7sNwuTqCZlXTFn3mUumVG9J/dUC93VSVSTsrqYXVFl9ndiv1mYRDUp64o58y5zyYzqbXy7AgAUIF0BAAqQrgAABXJPtdBdnUQ1KauL2RVVZn8n9puFSVSTsq6YM+8yl8yo3hZ9qoXu5ySqSVldzK6oMvs7sd8sTKKalHXFnHmXuWRG9R5OtQAAFODbFQCggP9UCx3X3vVJu7qYdVyj4ZrfRplrsnF+91sba1H93fbtyrV3fdKuLmYd12i45rdR5ppsnN/91sZaWn/3TFeZZxNMas6UeXLBROMsrGWuycb53W9trAX2l29XAIACpCsAQAHSFQCgwJ7pyrV3fdKuLmYd12i45rdR5ppsnN/91sZaYH+3fbvKPJtgUnOmzJMLJhpnYS1zTTbO735rYy2tv5xqAQAowLcrAEAB/6kWmaceTMpO7Bezq0eTqBpnYS3zLnPRxeyqeb8V+y3z21XmqQeuvdz7xezq0SSqxllYy7zLXHQxu2reb8X+izNdZZ56MCk7sV/Mrh5NomqchbXMu8xFF7Or5v1W7ALfrgAABUhXAIACpCsAQAFnuso89WBSdmK/mF09mkTVOAtrmXeZiy5mV837rdgF89tV5qkHk7IT+8Xs6tEkqsZZWMu8y1x0Mbtq3m/F/gunWgAACvDtCgBQYOdTLTLLTmo+rd3GmnVXJ1HpnNbumm4GXTVHjfO2p1pklp3UfFq7jTXrfk6i0jmt3TXdDLpqThvnPU+1yCw7qfm0dhtr1l2dRKVzWrtruhl01Rw4zny7AgAUIF0BAAqQrgAABfY81SKz7KTm09ptrFl3dRKVzmntrulm0FVz4Dhve6pFZtlJzae121iz7uckKp3T2l3TzaCr5rRx5lQLAEABvl0BAArsfKrFpOYJXVSumidcNTf2aNKua11lrrpJu6ycWNueajGpeUIXlavmCVfNjT2atOtaV5mrbtIuK+cVbM9TLSY1T+iictU84aq5sUeTdl3rKnPVTdpl5byyMxbfrgAABUhXAIACpCsAQIE9T7WY1Dyhi8pV84Sr5sYeTdp1ravMVTdpl5Xzyv7jwG1PtZjUPKGLylXzhKvmxh5N2nWtq8xVN2mXlfMKxqkWAIACfLsCABToPtXCZR3zpEeumicmMev6O+EaK53MWchs1yXzqRI1VsWnWrjodom7ap6YxKzr74RrrHQyZyGzXZfMp0raWLWeauHyS7ZL3FXzxCRmXX8nXGOlkzkLme26ZD5VAseKb1cAgAKkKwBAAdIVAKBA66kWLrpd4q6aJyYx6/o74RorncxZyGzXJfOpEjhWxadauPxoW/jh51bofuq4xkoncxYy23XJfKqkjRWnWgAACvDtCgBQIP1Ui/VVV82ZXD3KnKPGsmunree1zPnNnKPM9fyG6FMt1j9dNWdy9ShzjhrLTmrebz2vZc5v5hxlruf35J5qsb7qqjmTq0eZc9RYdlLzfut5LXN+M+cocz2/jW9XAIACpCsAQAHSFQCgQO6pFuurrpozuXqUOUeNZSc177ee1zLnN3OOMtfz26JPtVj/dNWcydWjzDlqLDupeb/1vJY5v5lzlLme38OpFgCAAny7AgAU8J9qsebaJT5pVxdzY9mJxpjXMmcw8y6blN3vydA4VreLfrty7RKftKuLubHsRGPMa5kzmHmXTcru92RoHCuF3HTl2iU+aVcXc2PZicaY1zJnMPMum5Td78nQOFYifLsCABQgXQEACpCuAAAFctOVa5f4pF1dzI1lJxpjXsucwcy7bFJ2vydD41iJRL9duXaJT9rVxdxYdqIx5rXMGcy8yyZl93syNI6VAqdaAAAK8O0KAFCg+1QLXc2TdnUxN2ocycnayFyxmT1qlDnOhzzNik+10NU8aVcXc6PGkZysjcwVm9mjRpnjfM7TrPVUC13Nuj3kp2kcycnayFyxmT1qlDnORz3N+HYFAChAugIAFCBdAQAKtJ5qoat50q4u5kaNIzlZG5krNrNHjTLH+ainWfGpFrqadXvIT9M4kpO1kbliM3vUKHOcz3macaoFAKAA364AAAX8p1pk7qh3RTVpVxezq7+ZTlsbrnXFXXZX2cxn7BvMb1eZO+pdUU3a1cXs6m+m09aGa11xl70uc8X8PGe6ytxR74pq0q4uZld/M522Nlzrirvs9chI1t2DfLsCABQgXQEACpCuAAAFnOkqc0e9K6pJu7qYXf3NdNracK0r7rLXIyNZdw+a364yd9S7opq0q4vZ1d9Mp60N17riLntd5or5eZxqAQAowLcrAECB9FMtdDVPrk7ancjs0X7jvB/XOLtW3cRpNRfdR9GnWuhqnvyctDuR2aP9xnk/rnF2rbqJ02ruuo9yT7XQ1Ty5Oml3IrNH+43zflzj7Fp1E6fVXHcf8e0KAFCAdAUAKEC6AgAUyD3VQlfz5Oqk3YnMHu03zvtxjbNr1U2cVnPdfRR9qoWu5snPSbsTmT3ab5z34xpn16qbOK3mrvuIUy0AAAX4dgUAKJB+qsXkamZUk5hdNbuimrSbQ72R5UrfM8eq8f6dtKsre4joUy0mPzOjmsTsqtkV1aRdfJY5Vo3376RdXdlz5J5qMbmaGZVu/7muZldUk3bxWeZYNd6/k3Z1ZY/CtysAQAH/tytgP0/+05hvHjgEb1cAgAK5p1pMrmZGNYnZVbMrqkm7+CxzrBrv30m7urJHiT7VYvIzMyrd/nNdza6oJu3is8yxarx/J+3qyp6DUy2A+/3ruuqnCQAAEABJREFU29Xn203xfYvbGRvj2xUAoED6Xwbu91dP6x7prk6icuFv3p6hW1eudhvvsv3u39tFv13tt9Nbt99+vx31+81+Jt26crXbeJftd/8q5H67uvJf/7use6S7OonKpX32XY+Myb/Kv9ajmwXXes68y/a7f0X4dgUAKEC6AgAUIF0BAArkpqv9dnqve6S7OonKZb/Zz6RbV652G++y/e5fkei3q/12eq97pPs5icplv9nPpFtXrnYb77L97l8FTrUA7tfyl4FAEb5dAQAK+E+12G9nO3vXP9ONBhJk3ik6pz1VombB/Ha138529q5/phsNJMi8U3ROe6qkzYIzXX3b+T//4/qqrmbX1bVJWRfdaCBB5p2ic9pTJXAW+HYFACiQfiI7cBq+4QHf4u0KAFDAma7229nu6lEm3WggQeadonPaUyVwFsxvV/vtbHf1KJNuNJAg807ROe2pkjYLnGoB3E/9B1TctjgQ364AAAW6/zKw8YSIdbu6qzqumF39bZQ5C7oZ3G/VuZ4bnGpxD91ebp11u7qfOq6YXf1tlDkLuhncb9W5nhtpd1nrt6t/DdyV7kzKTqzb1V3VccV8veyT/zac3My62BJm4d6yk5p5btx11YJvVwCAAqQrAEAB0hUAoEDxvquv/2n1el8mZSfW7equ6rhivlhW8e1K8cFZOln2Wbi97KRmnhv5T5V/KX670u3l1lm3q/up44rZ1d9GmbOgm8H9Vp3ruZF2l3GqBXbG2xWwDb5dAQAK+E+1WP/713V1zVV2v5qfdNesKaj3uLjuBdeazOxRY1RR97757apxt7ar7H414xmue8G1JjN71BhV2r3vTFffdv7P/+i6uuYqu1/NeIbrXnCtycweNUYVeO/z7QoAUKD7RHbgPVf+i/yT/5Bcb3YB8OLtCgBQwZmuvv1X7Z//0XV1zVV2v5rxDNe94FqTmT1qjCrw3je/XTXu1naV3a9mPMN1L7jWZGaPGqNKu/c51QI7a/kOxG0I/Ce+XQEACpz7l4FX/jbs+XZ1Ublqdo0z7jKZ38z1nNmjNV1/ixz6duXare3aQ+6q2TXOuMtkfjPXc2aP1nT97XJiunLt1s48BUBXc+CuePzIZH4z13Nmj9Z0/a3DtysAQAHSFQCgAOkKAFDg0H1XX//r7TPjsG5XF5WrZtc4fyvtP9lX3HqT+c1cz5k9WtP1t8uhb1eu3dqZpwDoak7bFY+fcp0dM4lqUjZzPev624VTLXAK3q6Aany7AgAU8J9q4dphrmvXdVWncZy/Wn+EwHsaV+xp937jM+db5rcr1w5zXbuunzqN44xnNK7Y0+79ne4yZ7py7TDXteu6qtM4znhG44o97d7f7C7j2xUAoMC5J7LjZK7vWPw1IPA23q4AAAWc6erbf2n++R8nV13tuq7qNI4zntG4Yk+79ze7y8xvV64d5rp2XT91GscZz2hcsafd+zvdZZxqAfw/xXcsbjHgFny7AgAU6P7LwKgd13+so2qMeVI2s7+47rQZzFzPrjs0avaL367Sdlx/WEfVGPOkbGZ/cd1pM5i5nl13aNrst367+tfAebuzjqox5knZzP5ed+Xm/NyX9v5+tV+P1jLXs+sODZx9vl0BAAqQrgAABUhXAIACxfuuvv6n1YS+rKNqjHlSNrO/F931zaD6S0/1DL4hcz277tC02S9+u8o816Brl/gH15555DttBjPXM6dafOBUC+B7vF0BUfh2BQAo4D/VgpMp7mpXF7Or5hwnvyHtdy+4onLZ5g41v11xMsVd7epidtWMBPvdC66oXHa6Q53p6tvO+8/5WEali3nSri5mV81IsN+94IrKZbM7lG9XAIAC3SeyA8844fscEI63KwBAAWe6+vZfmvZ/fq6j0sU8aVcXs6tmJNjvXnBF5bLZHWp+u+Jkirva1cXsqhkJ9rsXXFG57HSHcqoFAKAA364AAAXS/zLQ9VdVunbXNU+uuqKa1DzBX9xdt9+qc63YxvXs6tHtot+uXHuqM3fFZ0Y1qXnCtTYa7bfqXCu2cT27eqSQm65ce6ozd8VnRjWpecK1Nhrtt+pcK7ZxPbt6JMK3KwBAAdIVAKAA6QoAUCA3Xbn2VGfuis+MalLzhGttNNpv1blWbON6dvVIJPrtyrWnOnNXfGZUk5onXGuj0X6rzrViG9ezq0cKnGoBACjAtysAQIHuUy0mV3VRTcrqanbJHCudzBnU3UeZd9l+NbtE9aj4VIvJT11Uk7K6ml0yx0oncwZ191HmXbZfzS5pPWo91WJyVRfVpKyuZpfMsdLJnEHdfZR5l+1Xs0tgj/h2BQAoQLoCABQgXQEACrSeajG5qotqUlZXs0vmWOlkzqDuPsq8y/ar2SWwR8WnWkx+6qKalNXV7JI5VjqZM6i7jzLvsv1qdknrEadaAAAK8O0KAFDg3FMt1lddJlHpyp52roFrJHVOm6PMcXb1yFX2doeearH+6TKJSlf2tHMNXCOpc9ocZY6zq0eusgonnmqxvuoyiUpX1jWSrppdI6lz2hxljrOrR66yIny7AgAUIF0BAAqQrgAABU481WJ91WUSla7saecauEZS57Q5yhxnV49cZUUOPdVi/dNlEpWurGskXTW7RlLntDnKHGdXj1xlFTjVAgBQgG9XAIAC3adaTMrqrk7oam5sN3OOdIj5GbqV43oyZMZ8u+JTLSZldT8ndDU3tps5RzrE/AzdynE9GTJjVmg91WJSVnd1QldzY7uZc6RDzM/QrRzXkyEzZhG+XQEACpCuAAAFSFcAgAKtp1pMyuquTuhqbmw3c450iPkZupXjejJkxixSfKrFpKzu54Su5sZ2M+dIh5ifoVs5ridDZswKnGoBACjAtysAQIGdT7XIrFl3VRfVRGaPXLPgohvnicY1edp6jlrt255qkVmz7qcuqonMHrlmwUU3zhONa/K09Zy22vc81SKzZt1VXVQTmT1yzYKLbpwnGtfkaes5cLXz7QoAUIB0BQAoQLoCABTY81SLzJp1V3VRTWT2yDULLrpxnmhck6et58DVvu2pFpk1637qoprI7JFrFlx04zzRuCZPW89pq51TLQAABfh2BQAokH6qxZpuP/ak5syoJjXryk7sN5ITjWtSF5VL5ixMRM1C8dvVfjvMdVFNataVndhvJCca16QuKpfMWZhIm4XWdLXfDnNdVJOadWUn9hvJicY1qYvKJXMWJgJngW9XAIACpCsAQAHSFQCgQGu62m+HuS6qSc26shP7jeRE45rUReWSOQsTgbNQ/Ha13w5zXVSTmnVlJ/YbyYnGNamLyiVzFibSZoFTLQAABfh2BQAo4D/V4rQd9afF7MK6eoauv5njvNb43Chifrs6bUf9aTG7sK5ej9D1N3Oc1xqfG12c6eq0HfWnxezCuno9Mgu6/maO81rjc6MO364AAAVIVwCAAqQrAEABZ7o6bUf9aTG7sK5ej8yCrr+Z47zW+NyoY367Om1H/Wkxu7CuXo/Q9TdznNcanxtdONUCAFCAb1cAgALdp1ro2p1cdbWri0rHNRqZMzhpV4e1cZf9onpY8akWunYnP13t6qLScY1G5gxO2tVhbbxusl9Uz2s91ULX7uSqq11dVDqu0cicwUm7OqyN10393S8qC75dAQAKkK4AAAVIVwCAAq2nWujanVx1tauLSsc1GpkzOGlXh7Xxuqm/+0VlUXyqha7dyU9Xu7qodFyjkTmDk3Z1WBuvm+wX1fM41QIAUIBvVwCAAv5TLdZ0O651NU/anZR19WhNF3Pm2nCtnMaYdWV1NWeuycyyt4t+u9LtuNbVPGl3UtbVozVdzJlrw7VyGmPWldXVnLkmM8sq5KYr3Y5rXc2TdidlXT1a08WcuTZcK6cxZl1ZXc2ZazKzrAjfrgAABUhXAIACpCsAQIHcdKXbca2redLupKyrR2u6mDPXhmvlNMasK6urOXNNZpYViX670u241tU8aXdS1tWjNV3MmWvDtXIaY9aV1dWcuSYzyypwqgUAoADfrgAABbpPtXC1O4lqUrOuXR1dj3QyY26cQWK+q+bGe/92xadauNqdRDWpWdeujq5HOpkxN84gMd9Vc+O9r9B6qoWr3dN2xU/oeqSTGXPjDBLz9agyywbi2xUAoADpCgBQgHQFACjQeqqFq91JVJOade3q6Hqkkxlz4wwS8/WoMssGKj7VwtXuabviJ3Q90smMuXEGifmumhvvfQVOtQAAFODbFQCgQPepFpOrOrqYJz3KHCsX18kFjPP1q7p2M8tOanY9Nx5WfKrF5KeOLmbdznbXWLm4Ti5gnK//1LWbWXZSs+u58bzWUy0mV3V0Met2trvGykXXX8b5M9do6O4UXdlJza7nhgXfrgAABUhXAIACpCsAQIHWUy0mV3V0Met2trvGysV1cgHj/OL8iLdkPjcsik+1mPzU0cWs29nuGisXXX8Z589co6G7U3RlJzW7nhvP41QLAEABvl0BAAr4T7U47dwKHVe7a5OodGUbr641xjyha3e/lZM5g28wv125dmtPNEblMolKV7bx51pjzBO6dvdbOZkz+B5nunLt1p5ojMplEpWubOPVtcaYJ3Tt7rdyMmfwbXy7AgAUIF0BAAqQrgAABZzpyrVbe6IxKpdJVLqyjVfXGmOe0LW738rJnMG3md+uXLu1JxqjcplEpSvb+HOtMeYJXbv7rZzMGXwPp1oAAArw7QoAUMB/qsVpJnvIM8vSo7tkRrXmmkFdzY1rQ1c2Cm9Xj5rsIc8sS4/ukhnVmmsGdTU3rg1d2TSkq+dM9pBnlqVHd8mMas01g7qaG9eGrmwg0hUAoADpCgBQgHQFAChAunrOZA95Zll6dJfMqNZcM6iruXFt6MoGIl09arKHPLMsPbpLZlRrrhnU1dy4NnRl03CqBQCgQNY24Za/sCTHA8DDUtJV11aAj2jfS1quPfOudl0mPdqvLOvqs9PWxkTUDEZ8uyrdtvZG2K498652XVynAGSWZV19dtramEibQX+6qn44TtbcX//j+uqEq10X1ykAmWVZV/8ZwMZrYyJwBs3pqvqx+GGDLgBAPme62uZBT8YCADX2XQEACtjS1WZvJFe649oz72rXxXUKQGZZ1tV/BrDx2pgInEHerh7l2jOfuVdfx3UKQGZZ1tVnp62NibQZtJ1qsd/3ng2e8gAQq+n/+b1rcxwAwK4jXT3/4vLRoiJpTU4BcF2dcEXlKjuRGfNpo+G6U9Yy79+HFXy7Mo7R7U1PTgFw/ZxwReUqO5EZ82mj4bpT1jLv3+elp6vMPyV6z+QUANfVCVdUrrITmTGfNhquO2Ut8/61iE5XmX9KBAB4Xm66ikoSZCwA8GLfFQCgQGi6CnybmYc0OQXAdXXCFZWr7ERmzKeNhutOWcu8fy14u3rU5BQA188JV1SushOZMZ82Gq47ZS3z/n1e6KkW9nH5VmPMALCHplMt1n76F5ZkFwAoskO6em8rwEep55MWp0WuwYkAAAR0SURBVC1cv+oyiVl3da1xnNdcY6WLKnPlrHGqxZ2G29Ye3vXGaQvXf7pMYtb9XGsc5zXXWOmiylw5a2krpztd6TZvK3DawivgjIC1Scy6q2uN47zmGitdVJkrZy1w5RSnK90/IgAAaVrT1e0JhowFAMnYdwUAKFCZrkRvQuoXLE5beAWcEbA2iVl3da1xnNdcY6WLKnPlrHGqxek4beH6T5dJzLqfa43jvOYaK11UmStnLW3lVJ5qoXsNmrRb8RQAgFK8XQEACuxzCFOL004fcJmMs26OXGOVORprrpgz52i/dt/A29WjTjt9wGUyzro5co1V5misuWLOnKP92n0P6eo5p50+4KI7I2DSX9dYZY7GmivmzDnar923ka4AAAVIVwCAAqQrAEAB0tVzTjt9wGUyzro5co1V5misuWLOnKP92n0b6epRp50+4JJ5goBrrDJHY80Vc+Yc7dfuezjV4rZ2K7ILAJTi7QoAUIBTLbJknqcwKaszGavMcdbVnFl2vzW5lrkmde3ejrerIJnnKUzK6tx4VEHIOOtqziy735pcy1yTunYVKtOVKMl7/+2QeZ5C5r73yVhljrOu5syy+63Jtcw1qWtXhLcrAECB1nR1+5sQf9cHAMmK3650mzwAAGm6/2Ogbgv98zLPU5iU1ZmMVeY462rOLLvfmlzLXJO6dkXqv10Nhy9qlWeepzApqzMZq8xx1tWcWXa/NbmWuSZ17SpUnmrxRoUPNFFxzwBAqX22CZMtAGBjnGqRpfEshknZ02o+7epE5hzth1MtNvTA/rjMfe+6sqfVfNrPicw52g+nWtxg+1XyVea+d13Z02o+7epE5hzth1MtAAC4X266ivpHzYFvewAQJfrtKiRJkKsAwC79PwbaU8VjAWTue9eVPa3m065OZM7RfjjV4n7GjPVw05n73nVlT6v5tJ8TmXO0H061uNbwzzPBk6GGhwcAp2naJsw3JAA4FqdaPG2yS3xddlKzi65HrnHOvLqW2a7OaatuIuqpwr6re1ycyMku8XXZSc0uuh65xjnz51pmuzqnrbqJtKeKLV0d+KVnskt8XXZSs4uuR65xzry6ltmuzmmrbiLwqcLbFQCggDNdbfOCxd8EAoCa+e1qgwc9uQoAHuD/j4HVj/vJjtof1bAuO6nZRdcj1zhnXl3LbFfntFU3EfhUifh2Ff5g/Zc3wp7sEl+XndTsouuRa5wzf65ltqtz2qqbSHuq/LJH8Fn4H7P9ETVoAHCCrG3CpAEAwLf4Q3YAQAHSFQCgAOkKAFCAdAUAKEC6AgAUIF0BAAqQrgAABUhXAIACpCsAQAHSFQCgAOkKAFCAdAUAKEC6AgAUIF0BAAqQrgAABUhXAIACpCsAQAHSFQCgAOkKAFCAdAUAKEC6AgAUIF0BAAqQrgAABUhXAIACpCsAQAHSFQCgAOkKAFCAdAUAKEC6AgAUIF0BAAqQrgAABUhXAIACpCsAQAHSFQCgAOkKAFCAdAUAKEC6AgAUIF0BAAqQrgAABf4PAAD//yhDw2MAAAAGSURBVAMAHxGZvi+mSjgAAAAASUVORK5CYII=" alt="QR-код: карта маршрута на Яндекс Картах" width="132" height="132"></a><small>Карта маршрута на Яндекс Картах: наведите камеру</small></div>
+    </div>
+    <p class="warn">Перед поездкой уточните режим работы и статус объектов.</p>
+
+    <div class="sources">
+      <h3>Источники</h3>
+      <p><b>Эпос и запись 1910 года:</b> culture.ru («Эпос «Урал-Батыр»», «Эпос «Урал-батыр»: наследие веков»); Знание.Вики, «Урал-батыр»; РГО, «Малый географический диктант. Башкирия — 2023».</p>
+      <p><b>Янгантау:</b> Знание.Вики, «Янгантау (гора)» и «Янган-Тау (геопарк)»; «Российская газета», 01.04.2020.</p>
+      <p><b>Шиханы:</b> culture.ru, «Горы Шиханы»; «Новая газета», «Горы зовут на помощь» (2019); Радио Свобода, о предварительном списке ЮНЕСКО.</p>
+      <p><b>Шульган-Таш:</b> «Вокруг света»; tonkosti.ru; «Сноб», «Ради чего стоит ехать в Башкирию».</p>
+      <p><b>Бортничество:</b> Current Time, «Бурзянская порода пчёл и башкирские бортники»; БСЭ (booksite.ru); агентство ЕАН, 2006.</p>
+      <p><b>Тура-хан:</b> Циклопедия, «Евразийский музей кочевых цивилизаций «Тура-хан»»; «Ислам на территории бывшей Российской империи» (энциклопедический словарь, 2006).</p>
+      <p><b>Салават Юлаев:</b> Знание.Вики, «Памятник Салавату Юлаеву»; Радио Свобода; tonkosti.ru.</p>
+      <p><b>Музей и пещеры:</b> Большая российская энциклопедия, «Уфа. Музеи»; culture.ru, «Туристические тропы Башкортостана»; putevka.com; showcaves.com.</p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script>
+(function () {
+  var pts = document.querySelectorAll('[data-pt]');
+  var links = document.querySelectorAll('[data-link]');
+  function setOn(n, on) {
+    pts.forEach(function (p) { if (p.getAttribute('data-pt') === n) p.classList.toggle('on', on); });
+    links.forEach(function (l) { if (l.getAttribute('data-link') === n) l.classList.toggle('on', on); });
+  }
+  pts.forEach(function (p) {
+    var n = p.getAttribute('data-pt');
+    p.addEventListener('mouseenter', function () { setOn(n, true); });
+    p.addEventListener('mouseleave', function () { setOn(n, false); });
+    p.parentNode.addEventListener('focus', function () { setOn(n, true); });
+    p.parentNode.addEventListener('blur', function () { setOn(n, false); });
+  });
+  links.forEach(function (l) {
+    var n = l.getAttribute('data-link');
+    l.addEventListener('mouseenter', function () { setOn(n, true); });
+    l.addEventListener('mouseleave', function () { setOn(n, false); });
+    l.addEventListener('focus', function () { setOn(n, true); });
+    l.addEventListener('blur', function () { setOn(n, false); });
+  });
+})();
+</script>
+
+</body></html>
